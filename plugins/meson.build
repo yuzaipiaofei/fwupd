@@ -1,5 +1,6 @@
 subdir('dfu')
 subdir('ebitdo')
+subdir('flashrom')
 subdir('steelseries')
 subdir('nitrokey')
 subdir('test')
