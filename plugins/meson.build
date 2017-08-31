@@ -23,6 +23,10 @@ subdir('thunderbolt')
 subdir('thunderbolt-power')
 endif
 
+if get_option('plugin_redfish')
+subdir('redfish')
+endif
+
 if get_option('plugin_colorhug')
 subdir('colorhug')
 endif

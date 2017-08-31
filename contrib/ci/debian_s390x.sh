@@ -13,6 +13,7 @@ meson .. \
 	-Dplugin_uefi=false \
 	-Dplugin_uefi_labels=false \
 	-Dplugin_dell=false \
+	-Dplugin_redfish=false \
 	-Dplugin_synaptics=false \
 	-Dintrospection=false \
 	-Dgtkdoc=false \

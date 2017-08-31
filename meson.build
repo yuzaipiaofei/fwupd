@@ -184,6 +184,11 @@ if valgrind.found()
   conf.set('HAVE_VALGRIND', '1')
 endif
 
+if get_option('plugin_redfish')
+  json_glib = dependency('json-glib-1.0')
+  efivar = dependency('efivar')
+endif
+
 if get_option('plugin_colorhug')
   colorhug = dependency('colorhug', version : '>= 1.2.12')
   conf.set('HAVE_COLORHUG', '1')
