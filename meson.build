@@ -219,7 +219,7 @@ if get_option('enable-thunderbolt')
 endif
 
 if get_option('enable-systemd')
-  systemd = dependency('systemd', version : '>= 231')
+  systemd = dependency('systemd')
   conf.set('HAVE_SYSTEMD' , '1')
 endif
 
