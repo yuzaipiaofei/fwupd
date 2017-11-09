@@ -69,6 +69,56 @@ fu_hwids_has_guid (FuHwids *self, const gchar *guid)
 	return g_hash_table_lookup (self->hash_guid, guid) != NULL;
 }
 
+#if !AS_CHECK_VERSION(0,6,13)
+#include <uuid.h>
+static gchar *
+as_utils_guid_from_data (const gchar *namespace_id,
+			 const guint8 *data,
+			 gsize data_len,
+			 GError **error)
+{
+	gchar guid_new[37]; /* 36 plus NUL */
+	gsize digestlen = 20;
+	guint8 hash[20];
+	gint rc;
+	uuid_t uu_namespace;
+	uuid_t uu_new;
+	g_autoptr(GChecksum) csum = NULL;
+
+	g_return_val_if_fail (namespace_id != NULL, FALSE);
+	g_return_val_if_fail (data != NULL, FALSE);
+	g_return_val_if_fail (data_len != 0, FALSE);
+
+	/* convert the namespace to binary */
+	rc = uuid_parse (namespace_id, uu_namespace);
+	if (rc != 0) {
+		g_set_error (error,
+			     AS_UTILS_ERROR,
+			     AS_UTILS_ERROR_FAILED,
+			     "namespace '%s' is invalid",
+			     namespace_id);
+		return FALSE;
+	}
+
+	/* hash the namespace and then the string */
+	csum = g_checksum_new (G_CHECKSUM_SHA1);
+	g_checksum_update (csum, (guchar *) uu_namespace, 16);
+	g_checksum_update (csum, (guchar *) data, (gssize) data_len);
+	g_checksum_get_digest (csum, hash, &digestlen);
+
+	/* copy most parts of the hash 1:1 */
+	memcpy (uu_new, hash, 16);
+
+	/* set specific bits according to Section 4.1.3 */
+	uu_new[6] = (guint8) ((uu_new[6] & 0x0f) | (5 << 4));
+	uu_new[8] = (guint8) ((uu_new[8] & 0x3f) | 0x80);
+
+	/* return as a string */
+	uuid_unparse (uu_new, guid_new);
+	return g_strdup (guid_new);
+}
+#endif
+
 static gchar *
 fu_hwids_get_guid_for_str (const gchar *str, GError **error)
 {

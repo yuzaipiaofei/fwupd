@@ -38,6 +38,7 @@ libfwupdprivate = static_library(
   ],
   dependencies : [
     appstream_glib,
+    uuid,
     giounix,
     gudev,
     gusb,
@@ -67,6 +68,7 @@ fwupdmgr = executable(
   ],
   dependencies : [
     appstream_glib,
+    uuid,
     giounix,
     gudev,
     gusb,
@@ -141,6 +143,7 @@ executable(
   dependencies : [
     keyring_deps,
     appstream_glib,
+    uuid,
     giounix,
     gmodule,
     gudev,
@@ -203,6 +206,7 @@ if get_option('enable-tests')
     dependencies : [
       keyring_deps,
       appstream_glib,
+      uuid,
       giounix,
       gmodule,
       gudev,
@@ -260,6 +264,7 @@ if get_option('enable-introspection')
     ],
     dependencies : [
       appstream_glib,
+      uuid,
       gir_dep,
       giounix,
       gusb,

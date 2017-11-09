@@ -54,6 +54,131 @@
 #include "fu-keyring-pkcs7.h"
 #endif
 
+#if !AS_CHECK_VERSION(0,6,12)
+#include <fnmatch.h>
+#endif
+
+#if AS_CHECK_VERSION(0,6,13)
+static gint
+as_utils_vercmp_SAFE (const gchar *version_a, const gchar *version_b)
+{
+	return as_utils_vercmp (version_a, version_b);
+}
+#else
+
+static gchar *
+as_utils_version_parse_SAFE (const gchar *version)
+{
+	const gchar *version_noprefix = version;
+	gchar *endptr = NULL;
+	guint64 tmp;
+	guint base;
+	guint i;
+
+	/* already dotted decimal */
+	if (g_strstr_len (version, -1, ".") != NULL)
+		return g_strdup (version);
+
+	/* is a date */
+	if (g_str_has_prefix (version, "20") &&
+	    strlen (version) == 8)
+		return g_strdup (version);
+
+	/* convert 0x prefixed strings to dotted decimal */
+	if (g_str_has_prefix (version, "0x")) {
+		version_noprefix += 2;
+		base = 16;
+	} else {
+		/* for non-numeric content, just return the string */
+		for (i = 0; version[i] != '\0'; i++) {
+			if (!g_ascii_isdigit (version[i]))
+				return g_strdup (version);
+		}
+		base = 10;
+	}
+
+	/* convert */
+	tmp = g_ascii_strtoull (version_noprefix, &endptr, base);
+	if (endptr != NULL && endptr[0] != '\0')
+		return g_strdup (version);
+	if (tmp == 0)
+		return g_strdup (version);
+	return as_utils_version_from_uint32 ((guint32) tmp, AS_VERSION_PARSE_FLAG_USE_TRIPLET);
+}
+
+static gint
+as_utils_vercmp_SAFE (const gchar *version_a, const gchar *version_b)
+{
+	gchar *endptr;
+	gint64 ver_a;
+	gint64 ver_b;
+	guint i;
+	guint longest_split;
+	g_autofree gchar *str_a = NULL;
+	g_autofree gchar *str_b = NULL;
+	g_auto(GStrv) split_a = NULL;
+	g_auto(GStrv) split_b = NULL;
+
+	/* sanity check */
+	if (version_a == NULL || version_b == NULL)
+		return G_MAXINT;
+
+	/* optimisation */
+	if (g_strcmp0 (version_a, version_b) == 0)
+		return 0;
+
+	/* split into sections, and try to parse */
+	str_a = as_utils_version_parse_SAFE (version_a);
+	str_b = as_utils_version_parse_SAFE (version_b);
+	split_a = g_strsplit (str_a, ".", -1);
+	split_b = g_strsplit (str_b, ".", -1);
+	longest_split = MAX (g_strv_length (split_a), g_strv_length (split_b));
+	for (i = 0; i < longest_split; i++) {
+		gboolean isnum_a = TRUE;
+		gboolean isnum_b = TRUE;
+
+		/* we lost or gained a dot */
+		if (split_a[i] == NULL)
+			return -1;
+		if (split_b[i] == NULL)
+			return 1;
+
+		/* compare integers */
+		ver_a = g_ascii_strtoll (split_a[i], &endptr, 10);
+		if (endptr != NULL && endptr[0] != '\0')
+			isnum_a = FALSE;
+		if (ver_a < 0)
+			isnum_a = FALSE;
+		ver_b = g_ascii_strtoll (split_b[i], &endptr, 10);
+		if (endptr != NULL && endptr[0] != '\0')
+			isnum_b = FALSE;
+		if (ver_b < 0)
+			isnum_b = FALSE;
+
+		/* can't compare integer with string */
+		if (isnum_a != isnum_b)
+			return G_MAXINT;
+
+		/* compare strings */
+		if (!isnum_a) {
+			gint rc = g_strcmp0 (split_a[i], split_b[i]);
+			if (rc != 0)
+				return rc;
+
+		/* compare integers */
+		} else {
+			if (ver_a < ver_b)
+				return -1;
+			if (ver_a > ver_b)
+				return 1;
+		}
+	}
+
+	/* we really shouldn't get here */
+	return 0;
+}
+#endif
+
 static void fu_engine_finalize	 (GObject *obj);
 
 struct _FuEngine
@@ -811,6 +936,77 @@ _as_app_get_screenshot_default (AsApp *app)
 #endif
 }
 
+#if !AS_CHECK_VERSION(0,6,12)
+static gboolean
+as_require_version_compare_SAFE (AsRequire *require,
+			    const gchar *version,
+			    GError **error)
+{
+	const gchar *priv__version = as_require_get_version (require);
+	AsRequireCompare priv__compare = as_require_get_compare (require);
+	gboolean ret = FALSE;
+	gint rc = 0;
+
+	switch (priv__compare) {
+	case AS_REQUIRE_COMPARE_EQ:
+		rc = as_utils_vercmp_SAFE (version, priv__version);
+		ret = rc == 0;
+		break;
+	case AS_REQUIRE_COMPARE_NE:
+		rc = as_utils_vercmp_SAFE (version, priv__version);
+		ret = rc != 0;
+		break;
+	case AS_REQUIRE_COMPARE_LT:
+		rc = as_utils_vercmp_SAFE (version, priv__version);
+		ret = rc < 0;
+		break;
+	case AS_REQUIRE_COMPARE_GT:
+		rc = as_utils_vercmp_SAFE (version, priv__version);
+		ret = rc > 0;
+		break;
+	case AS_REQUIRE_COMPARE_LE:
+		rc = as_utils_vercmp_SAFE (version, priv__version);
+		ret = rc <= 0;
+		break;
+	case AS_REQUIRE_COMPARE_GE:
+		rc = as_utils_vercmp_SAFE (version, priv__version);
+		ret = rc >= 0;
+		break;
+	case AS_REQUIRE_COMPARE_GLOB:
+		ret = fnmatch (priv__version, version, 0) == 0;
+		break;
+	case AS_REQUIRE_COMPARE_REGEX:
+		ret = g_regex_match_simple (priv__version, version, 0, 0);
+		break;
+	default:
+		break;
+	}
+
+	/* could not compare */
+	if (rc == G_MAXINT) {
+		g_set_error (error,
+			     AS_UTILS_ERROR,
+			     AS_UTILS_ERROR_FAILED,
+			     "failed to compare [%s] and [%s]",
+			     priv__version,
+			     version);
+		return FALSE;
+	}
+
+	/* set error */
+	if (!ret && error != NULL) {
+		g_set_error (error,
+			     AS_UTILS_ERROR,
+			     AS_UTILS_ERROR_FAILED,
+			     "failed predicate [%s %s %s]",
+			     priv__version,
+			     as_require_compare_to_string (priv__compare),
+			     version);
+	}
+	return ret;
+}
+#endif
+
 static gboolean
 fu_engine_check_version_requirement (AsApp *app,
 				   AsRequireKind kind,
@@ -836,7 +1032,11 @@ fu_engine_check_version_requirement (AsApp *app,
 	}
 
 	/* check version */
+#if AS_CHECK_VERSION(0,6,12)
 	if (!as_require_version_compare (req, version, error)) {
+#else
+	if (!as_require_version_compare_SAFE (req, version, error)) {
+#endif
 		g_prefix_error (error, "Value of %s incorrect: ", id);
 		return FALSE;
 	}
@@ -1221,7 +1421,7 @@ fu_engine_install (FuEngine *self,
 
 	/* compare to the lowest supported version, if it exists */
 	tmp = fu_device_get_version_lowest (item->device);
-	if (tmp != NULL && as_utils_vercmp (tmp, version) > 0) {
+	if (tmp != NULL && as_utils_vercmp_SAFE (tmp, version) > 0) {
 		g_set_error (error,
 			     FWUPD_ERROR,
 			     FWUPD_ERROR_VERSION_NEWER,
@@ -1240,7 +1440,7 @@ fu_engine_install (FuEngine *self,
 			     device_id);
 		return FALSE;
 	}
-	vercmp = as_utils_vercmp (tmp, version);
+	vercmp = as_utils_vercmp_SAFE (tmp, version);
 	if (vercmp == 0 && (flags & FWUPD_INSTALL_FLAG_ALLOW_REINSTALL) == 0) {
 		g_set_error (error,
 			     FWUPD_ERROR,
@@ -1476,7 +1676,7 @@ fu_engine_get_action_id_for_device (FuEngine *self,
 				     "Release has no firmware version");
 		return NULL;
 	}
-	vercmp = as_utils_vercmp (version, version_release);
+	vercmp = as_utils_vercmp_SAFE (version, version_release);
 	if (vercmp == 0 && (flags & FWUPD_INSTALL_FLAG_ALLOW_REINSTALL) == 0) {
 		g_set_error (error,
 			     FWUPD_ERROR,
@@ -2099,7 +2299,7 @@ fu_engine_sort_releases_cb (gconstpointer a, gconstpointer b)
 {
 	FwupdRelease *rel_a = FWUPD_RELEASE (*((FwupdRelease **) a));
 	FwupdRelease *rel_b = FWUPD_RELEASE (*((FwupdRelease **) b));
-	return as_utils_vercmp (fwupd_release_get_version (rel_a),
+	return as_utils_vercmp_SAFE (fwupd_release_get_version (rel_a),
 				fwupd_release_get_version (rel_b));
 }
 
@@ -2246,7 +2446,7 @@ fu_engine_get_downgrades (FuEngine *self, const gchar *device_id, GError **error
 		gint vercmp;
 
 		/* only include older firmware */
-		vercmp = as_utils_vercmp (fwupd_release_get_version (rel_tmp),
+		vercmp = as_utils_vercmp_SAFE (fwupd_release_get_version (rel_tmp),
 					  fu_device_get_version (item->device));
 		if (vercmp == 0) {
 			g_string_append_printf (error_str, "%s=same, ",
@@ -2267,7 +2467,7 @@ fu_engine_get_downgrades (FuEngine *self, const gchar *device_id, GError **error
 
 		/* don't show releases we are not allowed to dowgrade to */
 		if (fu_device_get_version_lowest (item->device) != NULL) {
-			if (as_utils_vercmp (fwupd_release_get_version (rel_tmp),
+			if (as_utils_vercmp_SAFE (fwupd_release_get_version (rel_tmp),
 					     fu_device_get_version_lowest (item->device)) <= 0) {
 				g_string_append_printf (error_str, "%s=lowest, ",
 							fwupd_release_get_version (rel_tmp));
@@ -2339,7 +2539,7 @@ fu_engine_get_upgrades (FuEngine *self, const gchar *device_id, GError **error)
 		gint vercmp;
 
 		/* only include older firmware */
-		vercmp = as_utils_vercmp (fwupd_release_get_version (rel_tmp),
+		vercmp = as_utils_vercmp_SAFE (fwupd_release_get_version (rel_tmp),
 					  fu_device_get_version (item->device));
 		if (vercmp == 0) {
 			g_string_append_printf (error_str, "%s=same, ",
