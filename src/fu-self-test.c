@@ -353,6 +353,118 @@ fu_device_list_delay_func (void)
 	g_assert_cmpint (changed_cnt, ==, 1);
 }
 
+typedef struct {
+	FuDevice	*device_new;
+	FuDevice	*device_old;
+	FuDeviceList	*device_list;
+} FuDeviceListReplugHelper;
+
+static gboolean
+fu_device_list_remove_cb (gpointer user_data)
+{
+	FuDeviceListReplugHelper *helper = (FuDeviceListReplugHelper *) user_data;
+	fu_device_list_remove (helper->device_list, helper->device_old);
+	return FALSE;
+}
+
+static gboolean
+fu_device_list_add_cb (gpointer user_data)
+{
+	FuDeviceListReplugHelper *helper = (FuDeviceListReplugHelper *) user_data;
+	fu_device_list_add (helper->device_list, helper->device_new);
+	return FALSE;
+}
+
+static void
+fu_device_list_replug_auto_func (void)
+{
+	gboolean ret;
+	g_autoptr(FuDevice) device1 = fu_device_new ();
+	g_autoptr(FuDevice) device2 = fu_device_new ();
+	g_autoptr(FuDeviceList) device_list = fu_device_list_new ();
+	g_autoptr(GError) error = NULL;
+	FuDeviceListReplugHelper helper;
+
+	/* fake devices */
+	fu_device_set_id (device1, "device1");
+	fu_device_set_platform_id (device1, "ID");
+	fu_device_set_id (device1, "device2");
+	fu_device_set_platform_id (device2, "ID"); /* matches */
+
+	/* not yet added */
+	ret = fu_device_list_wait_for_replug (device_list, device1, &error);
+	g_assert_no_error (error);
+	g_assert (ret);
+
+	/* add device */
+	fu_device_list_add (device_list, device1);
+
+	/* not waiting */
+	ret = fu_device_list_wait_for_replug (device_list, device1, &error);
+	g_assert_no_error (error);
+	g_assert (ret);
+
+	/* waiting */
+	helper.device_old = device1;
+	helper.device_new = device2;
+	helper.device_list = device_list;
+	g_timeout_add (100, fu_device_list_remove_cb, &helper);
+	g_timeout_add (200, fu_device_list_add_cb, &helper);
+	fu_device_add_flag (device1, FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_AUTO);
+	ret = fu_device_list_wait_for_replug (device_list, device1, &error);
+	g_assert_no_error (error);
+	g_assert (ret);
+
+	/* waiting, failed */
+	fu_device_add_flag (device2, FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_AUTO);
+	ret = fu_device_list_wait_for_replug (device_list, device2, &error);
+	g_assert_error (error, FWUPD_ERROR, FWUPD_ERROR_NOT_FOUND);
+	g_assert (!ret);
+}
+
+static void
+fu_device_list_replug_user_func (void)
+{
+	gboolean ret;
+	g_autoptr(FuDevice) device1 = fu_device_new ();
+	g_autoptr(FuDevice) device2 = fu_device_new ();
+	g_autoptr(FuDeviceList) device_list = fu_device_list_new ();
+	g_autoptr(GError) error = NULL;
+	FuDeviceListReplugHelper helper;
+
+	/* fake devices */
+	fu_device_set_id (device1, "device1");
+	fu_device_add_guid (device1, "foo");
+	fu_device_add_guid (device1, "bar");
+	fu_device_set_id (device2, "device2");
+	fu_device_add_guid (device2, "baz");
+	fu_device_add_guid (device2, "bar"); /* matches */
+
+	/* not yet added */
+	ret = fu_device_list_wait_for_replug (device_list, device1, &error);
+	g_assert_no_error (error);
+	g_assert (ret);
+
+	/* add device */
+	fu_device_list_add (device_list, device1);
+
+	/* not waiting */
+	ret = fu_device_list_wait_for_replug (device_list, device1, &error);
+	g_assert_no_error (error);
+	g_assert (ret);
+
+	/* waiting */
+	helper.device_old = device1;
+	helper.device_new = device2;
+	helper.device_list = device_list;
+	g_timeout_add (100, fu_device_list_remove_cb, &helper);
+	g_timeout_add (200, fu_device_list_add_cb, &helper);
+	fu_device_add_flag (device1, FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_USER);
+	ret = fu_device_list_wait_for_replug (device_list, device1, &error);
+	g_assert_no_error (error);
+	g_assert (ret);
+}
+
 static void
 fu_device_list_compatible_func (void)
 {
@@ -1358,6 +1470,8 @@ main (int argc, char **argv)
 	g_test_add_func ("/fwupd/device-list", fu_device_list_func);
 	g_test_add_func ("/fwupd/device-list{delay}", fu_device_list_delay_func);
 	g_test_add_func ("/fwupd/device-list{compatible}", fu_device_list_compatible_func);
+	g_test_add_func ("/fwupd/device-list{replug-auto}", fu_device_list_replug_auto_func);
+	g_test_add_func ("/fwupd/device-list{replug-user}", fu_device_list_replug_user_func);
 	g_test_add_func ("/fwupd/engine", fu_engine_func);
 	g_test_add_func ("/fwupd/engine{require-hwid}", fu_engine_require_hwid_func);
 	g_test_add_func ("/fwupd/engine{partial-hash}", fu_engine_partial_hash_func);

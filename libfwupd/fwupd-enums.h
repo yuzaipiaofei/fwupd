@@ -88,6 +88,8 @@ typedef enum {
  * @FWUPD_DEVICE_FLAG_NEEDS_BOOTLOADER:		Requires a bootloader mode to be manually enabled by the user
  * @FWUPD_DEVICE_FLAG_REGISTERED:		Has been registered with other plugins
  * @FWUPD_DEVICE_FLAG_NEEDS_REBOOT:		Requires a reboot to apply firmware or to reload hardware
+ * @FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_USER:	The hardware is waiting for the user to reconnect the device
+ * @FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_AUTO:	The hardware is waiting to automaticlaly re-enumerate
  *
  * The device flags.
  **/
@@ -101,6 +103,8 @@ typedef enum {
 #define FWUPD_DEVICE_FLAG_NEEDS_BOOTLOADER	(1u << 6)	/* Since: 0.7.3 */
 #define FWUPD_DEVICE_FLAG_REGISTERED		(1u << 7)	/* Since: 0.9.7 */
 #define FWUPD_DEVICE_FLAG_NEEDS_REBOOT		(1u << 8)	/* Since: 0.9.7 */
+#define FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_USER	(1u << 9)	/* Since: 1.0.3 */
+#define FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_AUTO	(1u << 10)	/* Since: 1.0.3 */
 #define FWUPD_DEVICE_FLAG_UNKNOWN		G_MAXUINT64	/* Since: 0.7.3 */
 typedef guint64 FwupdDeviceFlags;
 

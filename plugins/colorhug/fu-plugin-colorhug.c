@@ -33,9 +33,7 @@ gboolean
 fu_plugin_update_detach (FuPlugin *plugin, FuDevice *device, GError **error)
 {
 	FuColorhugDevice *colorhug_dev = FU_COLORHUG_DEVICE (device);
-	GUsbDevice *usb_device = fu_usb_device_get_dev (FU_USB_DEVICE (device));
 	g_autoptr(FuDeviceLocker) locker = NULL;
-	g_autoptr(GUsbDevice) usb_device2 = NULL;
 
 	/* open device */
 	locker = fu_device_locker_new (device, error);
@@ -53,19 +51,7 @@ fu_plugin_update_detach (FuPlugin *plugin, FuDevice *device, GError **error)
 		return FALSE;
 
 	/* wait for replug */
-	g_clear_object (&locker);
-	usb_device2 = g_usb_context_wait_for_replug (fu_plugin_get_usb_context (plugin),
-						     usb_device,
-						     10000, error);
-	if (usb_device2 == NULL) {
-		g_prefix_error (error, "device did not come back: ");
-		return FALSE;
-	}
-
-	/* set the new device until we can use a new FuDevice */
-	fu_usb_device_set_dev (FU_USB_DEVICE (colorhug_dev), usb_device2);
-
-	/* success */
+	fu_device_add_flag (device, FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_AUTO);
 	return TRUE;
 }
 
@@ -73,9 +59,7 @@ gboolean
 fu_plugin_update_attach (FuPlugin *plugin, FuDevice *device, GError **error)
 {
 	FuColorhugDevice *colorhug_dev = FU_COLORHUG_DEVICE (device);
-	GUsbDevice *usb_device = fu_usb_device_get_dev (FU_USB_DEVICE (device));
 	g_autoptr(FuDeviceLocker) locker = NULL;
-	g_autoptr(GUsbDevice) usb_device2 = NULL;
 
 	/* open device */
 	locker = fu_device_locker_new (device, error);
@@ -93,19 +77,7 @@ fu_plugin_update_attach (FuPlugin *plugin, FuDevice *device, GError **error)
 		return FALSE;
 
 	/* wait for replug */
-	g_clear_object (&locker);
-	usb_device2 = g_usb_context_wait_for_replug (fu_plugin_get_usb_context (plugin),
-						     usb_device,
-						     10000, error);
-	if (usb_device2 == NULL) {
-		g_prefix_error (error, "device did not come back: ");
-		return FALSE;
-	}
-
-	/* set the new device until we can use a new FuDevice */
-	fu_usb_device_set_dev (FU_USB_DEVICE (colorhug_dev), usb_device2);
-
-	/* success */
+	fu_device_add_flag (device, FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_AUTO);
 	return TRUE;
 }
 

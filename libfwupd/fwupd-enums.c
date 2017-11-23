@@ -150,6 +150,10 @@ fwupd_device_flag_to_string (FwupdDeviceFlags device_flag)
 		return "registered";
 	if (device_flag == FWUPD_DEVICE_FLAG_NEEDS_REBOOT)
 		return "needs-reboot";
+	if (device_flag == FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_USER)
+		return "wait-for-replug-user";
+	if (device_flag == FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_AUTO)
+		return "wait-for-replug-auto";
 	if (device_flag == FWUPD_DEVICE_FLAG_UNKNOWN)
 		return "unknown";
 	return NULL;
@@ -190,6 +194,10 @@ fwupd_device_flag_from_string (const gchar *device_flag)
 		return FWUPD_DEVICE_FLAG_REGISTERED;
 	if (g_strcmp0 (device_flag, "needs-reboot") == 0)
 		return FWUPD_DEVICE_FLAG_NEEDS_REBOOT;
+	if (g_strcmp0 (device_flag, "wait-for-replug-user") == 0)
+		return FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_USER;
+	if (g_strcmp0 (device_flag, "wait-for-replug-auto") == 0)
+		return FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG_AUTO;
 	return FWUPD_DEVICE_FLAG_UNKNOWN;
 }
 

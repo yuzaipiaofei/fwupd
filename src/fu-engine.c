@@ -1323,6 +1323,8 @@ fu_engine_install (FuEngine *self,
 	/* do the update */
 	if (!fu_plugin_runner_update_detach (plugin, device, error))
 		return FALSE;
+	if (!fu_device_list_wait_for_replug (self->device_list, device, error))
+		return FALSE;
 	device = fu_device_list_find_by_id (self->device_list, device_id_orig, error);
 	if (device == NULL)
 		return FALSE;
@@ -1353,10 +1355,14 @@ fu_engine_install (FuEngine *self,
 		fu_device_set_status (device, FWUPD_STATUS_IDLE);
 		return FALSE;
 	}
+	if (!fu_device_list_wait_for_replug (self->device_list, device, error))
+		return FALSE;
 	device = fu_device_list_find_by_id (self->device_list, device_id_orig, error);
 	if (device == NULL)
 		return FALSE;
 	if (!fu_plugin_runner_update_attach (plugin, device, error))
+		return FALSE;
+	if (!fu_device_list_wait_for_replug (self->device_list, device, error))
 		return FALSE;
 
 	/* get the new version number */

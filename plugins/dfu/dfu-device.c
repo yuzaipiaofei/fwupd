@@ -1547,8 +1547,6 @@ dfu_device_probe (FuUsbDevice *device, GError **error)
 	/* check capabilities */
 	if (dfu_device_can_download (self)) {
 		fu_device_add_flag (FU_DEVICE (device), FWUPD_DEVICE_FLAG_UPDATABLE);
-		fu_device_set_remove_delay (FU_DEVICE (device),
-					    FU_DEVICE_REMOVE_DELAY_RE_ENUMERATE);
 	}
 
 	/* needs a manual action */
