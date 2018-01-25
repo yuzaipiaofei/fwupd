@@ -16,4 +16,7 @@ shared_module('fu_plugin_amt',
     plugin_deps,
     uuid,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )

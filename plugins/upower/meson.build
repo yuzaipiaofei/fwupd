@@ -15,4 +15,7 @@ shared_module('fu_plugin_upower',
   dependencies : [
     plugin_deps,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )

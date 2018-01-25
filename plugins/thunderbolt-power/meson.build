@@ -16,4 +16,7 @@ fu_plugin_thunderbolt_power = shared_module('fu_plugin_thunderbolt_power',
     plugin_deps,
     gudev,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )

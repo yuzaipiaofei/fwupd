@@ -113,6 +113,7 @@ global_link_args = []
 test_link_args = [
   '-Wl,-z,relro',
   '-Wl,-z,now',
+  '-Wl,-z,defs',
 ]
 foreach arg: test_link_args
   if cc.has_argument(arg)

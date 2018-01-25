@@ -25,6 +25,9 @@ shared_module('fu_plugin_unifying',
     plugin_deps,
     gudev,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )
 
 executable(
@@ -51,7 +54,6 @@ executable(
     gudev,
   ],
   link_with : [
-    fwupd,
     libfwupdprivate,
   ],
   c_args : cargs,

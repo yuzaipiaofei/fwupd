@@ -20,6 +20,9 @@ shared_module('fu_plugin_raspberrypi',
   dependencies : [
     plugin_deps,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )
 
 if get_option('tests')
@@ -43,7 +46,6 @@ if get_option('tests')
       valgrind,
     ],
     link_with : [
-      fwupd,
       libfwupdprivate,
     ],
     c_args : [

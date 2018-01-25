@@ -19,6 +19,9 @@ shared_module('fu_plugin_altos',
     libelf,
     plugin_deps,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )
 
 executable(
@@ -39,7 +42,6 @@ executable(
     plugin_deps,
   ],
   link_with : [
-    fwupd,
     libfwupdprivate,
   ],
   c_args : cargs,

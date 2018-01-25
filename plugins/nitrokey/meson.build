@@ -17,6 +17,9 @@ shared_module('fu_plugin_nitrokey',
   dependencies : [
     plugin_deps,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )
 
 if get_option('tests')

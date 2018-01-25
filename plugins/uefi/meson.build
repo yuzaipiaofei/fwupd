@@ -16,4 +16,7 @@ shared_module('fu_plugin_uefi',
     plugin_deps,
     fwup,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )

@@ -16,4 +16,7 @@ shared_module('fu_plugin_steelseries',
   dependencies : [
     plugin_deps,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )

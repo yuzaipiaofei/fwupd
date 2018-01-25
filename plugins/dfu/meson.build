@@ -31,6 +31,9 @@ dfu = static_library(
     libm,
     gusb,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
   c_args : cargs,
   include_directories : [
     include_directories('../..'),
@@ -78,7 +81,6 @@ executable(
   ],
   link_with : [
     dfu,
-    fwupd,
     libfwupdprivate,
   ],
   c_args : cargs,
@@ -122,7 +124,6 @@ if get_option('tests')
     ],
     link_with : [
       dfu,
-      fwupd,
       libfwupdprivate,
     ],
     c_args : cargs

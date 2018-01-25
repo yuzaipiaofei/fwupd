@@ -55,6 +55,9 @@ libfwupdprivate = static_library(
     '-DFWUPDDATADIR="' + join_paths(datadir, 'fwupd') + '"',
     '-DFU_OFFLINE_DESTDIR=""',
   ],
+  link_with : [
+    fwupd,
+  ],
 )
 
 fwupdmgr = executable(
@@ -77,7 +80,6 @@ fwupdmgr = executable(
     libarchive,
   ],
   link_with : [
-    fwupd,
     libfwupdprivate,
   ],
   c_args : [

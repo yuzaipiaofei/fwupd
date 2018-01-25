@@ -17,6 +17,9 @@ shared_module('fu_plugin_udev',
     plugin_deps,
     gudev,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )
 
 executable(
@@ -35,7 +38,6 @@ executable(
     gudev,
   ],
   link_with : [
-    fwupd,
     libfwupdprivate,
   ],
   c_args : cargs,
@@ -62,7 +64,6 @@ if get_option('tests')
       gudev,
     ],
     link_with : [
-      fwupd,
       libfwupdprivate,
     ],
     c_args : cargs

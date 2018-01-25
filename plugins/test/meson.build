@@ -20,4 +20,7 @@ shared_module('fu_plugin_test',
   dependencies : [
     plugin_deps,
   ],
+  link_with : [
+    libfwupdprivate,
+  ],
 )
