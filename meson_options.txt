@@ -15,6 +15,7 @@ option('plugin_synaptics', type: 'boolean', value: true, description : 'enable S
 option('plugin_thunderbolt', type : 'boolean', value : true, description : 'enable Thunderbolt support')
 option('plugin_uefi_labels', type : 'boolean', value : true, description : 'enable UEFI labels support')
 option('plugin_uefi', type : 'boolean', value : true, description : 'enable UEFI support')
+option('plugin_qmi', type : 'boolean', value : true, description : 'enable QMI support')
 option('systemd', type : 'boolean', value : true, description : 'enable systemd support')
 option('systemdunitdir', type: 'string', value: '', description: 'Directory for systemd units')
 option('tests', type : 'boolean', value : true, description : 'enable tests')

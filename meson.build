@@ -206,6 +206,10 @@ if get_option('plugin_uefi')
   conf.set_quoted('LIBFWUP_LIBRARY_VERSION', fwup.version())
 endif
 
+if get_option('plugin_qmi')
+  libqmi = dependency('qmi-glib', version : '>= 1.20.0')
+endif
+
 if get_option('plugin_dell')
   libsmbios_c = dependency('libsmbios_c', version : '>= 2.3.0')
   efivar = dependency('efivar')
