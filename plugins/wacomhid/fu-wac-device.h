@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*-
  *
- * Copyright (C) 2017 Richard Hughes <richard@hughsie.com>
+ * Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -19,40 +19,23 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#ifndef __DFU_CHUNKED_H
-#define __DFU_CHUNKED_H
+#ifndef __FU_WAC_DEVICE_H
+#define __FU_WAC_DEVICE_H
 
-#include <glib.h>
+#include <glib-object.h>
 #include <gusb.h>
+
+#include "fu-plugin.h"
 
 G_BEGIN_DECLS
 
-typedef struct {
-	guint32		 idx;
-	guint32		 page;
-	guint32		 address;
-	const guint8	*data;
-	guint32		 data_sz;
-} DfuChunkedPacket;
+#define FU_TYPE_WAC_DEVICE (fu_wac_device_get_type ())
+G_DECLARE_FINAL_TYPE (FuWacDevice, fu_wac_device, FU, WAC_DEVICE, FuUsbDevice)
 
-DfuChunkedPacket *dfu_chunked_packet_new		(guint32	 idx,
-							 guint32	 page,
-							 guint32	 address,
-							 const guint8	*data,
-							 guint32	 data_sz);
-gchar		*dfu_chunked_packet_to_string		(DfuChunkedPacket	*item);
-
-gchar		*dfu_chunked_to_string			(GPtrArray	*chunked);
-GPtrArray	*dfu_chunked_new			(const guint8	*data,
-							 guint32	 data_sz,
-							 guint32	 addr_start,
-							 guint32	 page_sz,
-							 guint32	 packet_sz);
-GPtrArray	*dfu_chunked_new_from_bytes		(GBytes		*blob,
-							 guint32	 addr_start,
-							 guint32	 page_sz,
-							 guint32	 packet_sz);
+FuWacDevice	*fu_wac_device_new		(GUsbDevice		*usb_device);
+gboolean	 fu_wac_device_update_reset	(FuWacDevice		*self,
+						 GError			**error);
 
 G_END_DECLS
 
-#endif /* __DFU_CHUNKED_H */
+#endif /* __FU_WAC_DEVICE_H */
