@@ -63,7 +63,8 @@ typedef enum {
  * @DFU_FIRMWARE_FORMAT_DFU:				DFU footer
  * @DFU_FIRMWARE_FORMAT_DFUSE:				DfuSe header
  * @DFU_FIRMWARE_FORMAT_INTEL_HEX:			Intel HEX
- * @DFU_FIRMWARE_FORMAT_SREC:			Motorola S-record
+ * @DFU_FIRMWARE_FORMAT_SREC:				Motorola S-record
+ * @DFU_FIRMWARE_FORMAT_WAC:				Wacom Modified S-record
  *
  * The known versions of the DFU standard in BCD format.
  **/
@@ -74,6 +75,7 @@ typedef enum {
 	DFU_FIRMWARE_FORMAT_DFUSE,
 	DFU_FIRMWARE_FORMAT_INTEL_HEX,
 	DFU_FIRMWARE_FORMAT_SREC,
+	DFU_FIRMWARE_FORMAT_WAC,
 	/*< private >*/
 	DFU_FIRMWARE_FORMAT_LAST
 } DfuFirmwareFormat;

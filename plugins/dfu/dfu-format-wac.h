@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*-
  *
- * Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
+ * Copyright (C) 2015-2016 Richard Hughes <richard@hughsie.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#ifndef __DFU_FORMAT_SREC_H
-#define __DFU_FORMAT_SREC_H
+#ifndef __DFU_FORMAT_DFUSE_H
+#define __DFU_FORMAT_DFUSE_H
 
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -29,18 +29,14 @@
 
 G_BEGIN_DECLS
 
-DfuFirmwareFormat	 dfu_firmware_detect_srec	(GBytes		*bytes);
-GBytes			*dfu_firmware_to_srec		(DfuFirmware	*firmware,
+DfuFirmwareFormat	 dfu_firmware_detect_wac	(GBytes		*bytes);
+GBytes			*dfu_firmware_to_wac		(DfuFirmware	*firmware,
 							 GError		**error);
-gboolean		 dfu_firmware_from_srec		(DfuFirmware	*firmware,
-							 GBytes		*bytes,
-							 DfuFirmwareParseFlags flags,
-							 GError		**error);
-gboolean		 dfu_image_from_srec		(DfuImage	*image,
+gboolean		 dfu_firmware_from_wac		(DfuFirmware	*firmware,
 							 GBytes		*bytes,
 							 DfuFirmwareParseFlags flags,
 							 GError		**error);
 
 G_END_DECLS
 
-#endif /* __DFU_FORMAT_SREC_H */
+#endif /* __DFU_FORMAT_DFUSE_H */

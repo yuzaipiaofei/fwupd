@@ -19,6 +19,7 @@ dfu = static_library(
     'dfu-format-srec.c',
     'dfu-format-metadata.c',
     'dfu-format-raw.c',
+    'dfu-format-wac.c',
     'dfu-image.c',
     'dfu-patch.c',
     'dfu-sector.c',

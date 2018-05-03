@@ -44,6 +44,7 @@
 #include "dfu-format-ihex.h"
 #include "dfu-format-raw.h"
 #include "dfu-format-srec.h"
+#include "dfu-format-wac.h"
 #include "dfu-image.h"
 
 #include "fwupd-error.h"
@@ -388,6 +389,8 @@ dfu_firmware_parse_data (DfuFirmware *firmware, GBytes *bytes,
 	if (priv->format == DFU_FIRMWARE_FORMAT_UNKNOWN)
 		priv->format = dfu_firmware_detect_srec (bytes);
 	if (priv->format == DFU_FIRMWARE_FORMAT_UNKNOWN)
+		priv->format = dfu_firmware_detect_wac (bytes);
+	if (priv->format == DFU_FIRMWARE_FORMAT_UNKNOWN)
 		priv->format = dfu_firmware_detect_dfu (bytes);
 	if (priv->format == DFU_FIRMWARE_FORMAT_UNKNOWN)
 		priv->format = dfu_firmware_detect_raw (bytes);
@@ -400,6 +403,10 @@ dfu_firmware_parse_data (DfuFirmware *firmware, GBytes *bytes,
 		break;
 	case DFU_FIRMWARE_FORMAT_SREC:
 		if (!dfu_firmware_from_srec (firmware, bytes, flags, error))
+			return FALSE;
+		break;
+	case DFU_FIRMWARE_FORMAT_WAC:
+		if (!dfu_firmware_from_wac (firmware, bytes, flags, error))
 			return FALSE;
 		break;
 	case DFU_FIRMWARE_FORMAT_DFU:
@@ -590,6 +597,10 @@ dfu_firmware_write_data (DfuFirmware *firmware, GError **error)
 	if (priv->format == DFU_FIRMWARE_FORMAT_SREC)
 		return dfu_firmware_to_srec (firmware, error);
 
+	/* Wacom Modified S-record */
+	if (priv->format == DFU_FIRMWARE_FORMAT_WAC)
+		return dfu_firmware_to_wac (firmware, error);
+
 	/* invalid */
 	g_set_error (error,
 		     FWUPD_ERROR,
@@ -713,6 +724,8 @@ dfu_firmware_format_to_string (DfuFirmwareFormat format)
 		return "ihex";
 	if (format == DFU_FIRMWARE_FORMAT_SREC)
 		return "srec";
+	if (format == DFU_FIRMWARE_FORMAT_WAC)
+		return "wac";
 	return NULL;
 }
 
@@ -737,6 +750,8 @@ dfu_firmware_format_from_string (const gchar *format)
 		return DFU_FIRMWARE_FORMAT_INTEL_HEX;
 	if (g_strcmp0 (format, "srec") == 0)
 		return DFU_FIRMWARE_FORMAT_SREC;
+	if (g_strcmp0 (format, "wac") == 0)
+		return DFU_FIRMWARE_FORMAT_WAC;
 	return DFU_FIRMWARE_FORMAT_UNKNOWN;
 }
 
